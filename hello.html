@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <div id="greet">Hello, Js</div>
+    <input id="number" type="number" value="1000000" />
+    <br />
+    <input id="button1" type="button" value="Execute on Wasm" />
+    <input id="button2" type="button" value="Execute on JS" />
+    <script type="module">
+      import init, {
+        greet,
+        collatz,
+        collatz_loop,
+      } from "./pkg/rust_wasm_sample.js";
+      init().then(() => {
+        const greetElm = document.getElementById("greet");
+        greetElm.innerHTML = greet("WebAssembly");
+        console.log(collatz(11n, 1));
+
+        const CalcOnWasm = () => {
+          const startTime = performance.now();
+          const numberElm = document.getElementById("number");
+          const num = BigInt(numberElm.value);
+          console.log(collatz_loop(num));
+          console.log(`${performance.now() - startTime} ms`);
+        };
+
+        let buttonElm1 = document.getElementById("button1");
+        buttonElm1.onclick = CalcOnWasm;
+
+        const collatzJs = (n, step) => {
+          if (n < 1) {
+            throw Error("Invalid value");
+          }
+          if (n == 1) {
+            return step;
+          }
+          if (n % 2 == 1) {
+            return collatzJs(3 * n + 1, step + 1);
+          } else {
+            return collatzJs(n / 2, step + 1);
+          }
+        };
+
+        const collatzLoopJs = (n) => {
+          let step = 0;
+          for (let i = 1; i <= n; i++) {
+            step += collatzJs(i, 1);
+            step %= 1000000007;
+          }
+          return step;
+        };
+
+        const CalcOnJs = () => {
+          const startTime = performance.now();
+          const numberElm = document.getElementById("number");
+          const num = BigInt(numberElm.value);
+          console.log(collatzLoopJs(num));
+          console.log(`${performance.now() - startTime} ms`);
+        };
+
+        let buttonElm2 = document.getElementById("button2");
+        buttonElm2.onclick = CalcOnJs;
+      });
+    </script>
+  </body>
+</html>
